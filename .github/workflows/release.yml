@@ -11,6 +11,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false  # ← Важно! Не отменять остальные, если одна упала
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
@@ -23,29 +24,42 @@ jobs:
         with:
           go-version: '1.22'
 
+      # === LINUX: устанавливаем ВСЕ нужные зависимости ===
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc libgl1-mesa-dev libx11-dev xorg-dev
+          sudo apt-get install -y \
+            gcc \
+            libgl1-mesa-dev \
+            libx11-dev \
+            xorg-dev \
+            libwayland-dev \
+            libxkbcommon-dev \
+            libegl1-mesa-dev
 
+      # === MACOS: зависимости ===
       - name: Install macOS dependencies
         if: matrix.os == 'macos-latest'
         run: |
           brew install gcc
 
+      # === Сборка для Linux ===
       - name: Build for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          CGO_ENABLED=1 go build -o HexLoader-linux-amd64.exe .
+          CGO_ENABLED=1 go build -o HexLoader-linux-amd64 .
         env:
           CGO_ENABLED: 1
 
+      # === Сборка для Windows ===
       - name: Build for Windows
         if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
           go build -o HexLoader-windows-amd64.exe .
 
+      # === Сборка для macOS ===
       - name: Build for macOS
         if: matrix.os == 'macos-latest'
         run: |
@@ -53,6 +67,7 @@ jobs:
         env:
           CGO_ENABLED: 1
 
+      # === Загрузка артефактов ===
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
