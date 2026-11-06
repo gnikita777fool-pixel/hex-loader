@@ -6,12 +6,15 @@ on:
       - 'v*.*.*'
   workflow_dispatch:
 
+permissions:
+  contents: write   # ← ЭТО КЛЮЧЕВОЕ ДОБАВЛЕНИЕ! Разрешает создание релизов
+
 jobs:
   build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false  # ← Важно! Не отменять остальные, если одна упала
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
@@ -24,7 +27,6 @@ jobs:
         with:
           go-version: '1.22'
 
-      # === LINUX: устанавливаем ВСЕ нужные зависимости ===
       - name: Install Linux dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -38,13 +40,11 @@ jobs:
             libxkbcommon-dev \
             libegl1-mesa-dev
 
-      # === MACOS: зависимости ===
       - name: Install macOS dependencies
         if: matrix.os == 'macos-latest'
         run: |
           brew install gcc
 
-      # === Сборка для Linux ===
       - name: Build for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -52,14 +52,12 @@ jobs:
         env:
           CGO_ENABLED: 1
 
-      # === Сборка для Windows ===
       - name: Build for Windows
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
           go build -o HexLoader-windows-amd64.exe .
 
-      # === Сборка для macOS ===
       - name: Build for macOS
         if: matrix.os == 'macos-latest'
         run: |
@@ -67,7 +65,6 @@ jobs:
         env:
           CGO_ENABLED: 1
 
-      # === Загрузка артефактов ===
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -89,5 +86,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**/*
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
