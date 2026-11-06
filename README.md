@@ -45,6 +45,8 @@
 2. Docker-контейнеры `fyne-cross` компилируют код под целевые ОС и архитектуры.
 3. Готовые бинарники автоматически прикрепляются к GitHub Releases.
 
+<img width="1373" height="1234" alt="image" src="https://github.com/user-attachments/assets/79ebb45f-99dc-4b59-9d09-2158941064df" />
+
 ---
 
 ## 📥 Установка и запуск
